@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { getLatestTokenSnapshot } from '@/lib/db-queries';
 
 export const revalidate = 3600;
