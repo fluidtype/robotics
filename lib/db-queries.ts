@@ -14,6 +14,7 @@ export interface ArticleFilters {
   from?: Date;
   to?: Date;
   companyId?: string;
+  sourceId?: string;
   limit?: number;
   offset?: number;
 }
@@ -41,6 +42,7 @@ export async function getArticles(
     from,
     to,
     companyId,
+    sourceId,
     limit = 20,
     offset = 0,
   } = filters;
@@ -57,6 +59,10 @@ export async function getArticles(
 
   if (companyId) {
     andConditions.push({ companyId });
+  }
+
+  if (sourceId) {
+    andConditions.push({ sourceId });
   }
 
   if (from || to) {
