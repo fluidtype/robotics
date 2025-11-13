@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { getArticles } from '@/lib/db-queries';
 
 export const revalidate = 60;

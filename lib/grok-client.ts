@@ -24,7 +24,7 @@ function getClient(): OpenAI {
   return cachedClient;
 }
 
-const ENRICH_SYSTEM_PROMPT = `You are an AI editor that summarizes robotics news. Respond with strict JSON and include fields title, summary_ai, category, robot_tags, importance_score, company_name, company_website. Category must be one of product, funding, partnership, policy, or other. importance_score is an integer from 1-5.`;
+const ENRICH_SYSTEM_PROMPT = `You are an AI editor that summarizes robotics news. Respond with strict JSON and include fields title, summary_ai, category, robot_tags, importance_score, company_name, company_website. Category must be one of product, funding, partnership, policy, or other. importance_score is an integer from 0-100.`;
 
 export async function enrichNews(rawNews: RawNewsData): Promise<EnrichedArticleData> {
   const client = getClient();
