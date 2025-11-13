@@ -6,6 +6,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        "bg-base": "var(--bg-base)",
+        "bg-elevated": "var(--bg-elevated)",
+        "border-subtle": "var(--border-subtle)",
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        accent: {
+          DEFAULT: "var(--accent-primary)",
+          primary: "var(--accent-primary)",
+          secondary: "var(--accent-secondary)",
+        },
         brand: {
           50: "#eef2ff",
           100: "#d6e0ff",
