@@ -2,12 +2,9 @@ import { CoinGeckoMarketResponse, RoboticsTokenSnapshotData } from './types';
 
 const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
 
-function getApiKey(): string {
-  const apiKey = process.env.COINGECKO_API_KEY;
-  if (!apiKey) {
-    throw new Error('COINGECKO_API_KEY is not configured');
-  }
-  return apiKey;
+function getApiKey(): string | null {
+  const apiKey = process.env.COINGECKO_API_KEY?.trim();
+  return apiKey && apiKey.length > 0 ? apiKey : null;
 }
 
 function mapToken(response: CoinGeckoMarketResponse): RoboticsTokenSnapshotData {
@@ -27,13 +24,7 @@ function mapToken(response: CoinGeckoMarketResponse): RoboticsTokenSnapshotData 
 }
 
 export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]> {
-  let apiKey: string;
-  try {
-    apiKey = getApiKey();
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  const apiKey = getApiKey();
 
   const params = new URLSearchParams({
     category: 'robotics',
@@ -44,11 +35,15 @@ export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]
     price_change_percentage: '1h,24h,7d',
   });
 
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+  };
+  if (apiKey) {
+    headers['x-cg-pro-api-key'] = apiKey;
+  }
+
   const response = await fetch(`${COINGECKO_API_URL}/coins/markets?${params.toString()}`, {
-    headers: {
-      'accept': 'application/json',
-      'x-cg-pro-api-key': apiKey,
-    },
+    headers,
     next: { revalidate: 60 },
   });
 

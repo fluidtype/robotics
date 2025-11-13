@@ -7,8 +7,10 @@ import { CompaniesFiltersPanel } from "./companies-filters";
 const categories = ["mobility", "logistics", "health", "industrial", "software"];
 const countries = ["United States", "Canada", "Germany", "Italy", "Japan"];
 
+type CompaniesSearchParams = { [key: string]: string | string[] | undefined };
+
 interface CompaniesPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams?: CompaniesSearchParams | Promise<CompaniesSearchParams>;
 }
 
 type CompanyResponse = Omit<CompanyType, "last_seen_at"> & { last_seen_at: string };
@@ -32,9 +34,10 @@ async function fetchCompanies(params: URLSearchParams) {
 }
 
 export default async function CompaniesPage({ searchParams }: CompaniesPageProps) {
-  const q = getParam(searchParams.q);
-  const category = getParam(searchParams.category);
-  const country = getParam(searchParams.country);
+  const resolvedSearchParams = (await Promise.resolve(searchParams)) ?? {};
+  const q = getParam(resolvedSearchParams.q);
+  const category = getParam(resolvedSearchParams.category);
+  const country = getParam(resolvedSearchParams.country);
 
   const params = new URLSearchParams();
   if (q) params.set("q", q);
