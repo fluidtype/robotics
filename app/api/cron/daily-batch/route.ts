@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import prisma from '@/lib/prisma';
 import { fetchAndParseRss } from '@/lib/rss-client';
 import { enrichNews } from '@/lib/grok-client';

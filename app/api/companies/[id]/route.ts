@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { getCompanyById } from '@/lib/db-queries';
 
 export async function GET(

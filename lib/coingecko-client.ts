@@ -27,6 +27,14 @@ function mapToken(response: CoinGeckoMarketResponse): RoboticsTokenSnapshotData 
 }
 
 export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]> {
+  let apiKey: string;
+  try {
+    apiKey = getApiKey();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+
   const params = new URLSearchParams({
     category: 'robotics',
     vs_currency: 'usd',
@@ -39,7 +47,7 @@ export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]
   const response = await fetch(`${COINGECKO_API_URL}/coins/markets?${params.toString()}`, {
     headers: {
       'accept': 'application/json',
-      'x-cg-pro-api-key': getApiKey(),
+      'x-cg-pro-api-key': apiKey,
     },
     next: { revalidate: 60 },
   });

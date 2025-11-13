@@ -61,7 +61,7 @@ export interface EnrichedArticleData {
   robot_tags: string[];
   importance_score: number;
   company_name: string | null;
-  company_website: string | null;
+  company_website?: string | null;
 }
 
 export interface RoboticsTokenSnapshotType {

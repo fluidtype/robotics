@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { getCompanies } from '@/lib/db-queries';
 
 function parseNumber(value: string | null, fallback: number): number {
