@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get('category') ?? undefined;
     const tag = searchParams.get('tag') ?? undefined;
     const companyId = searchParams.get('companyId') ?? undefined;
+    const sourceId = searchParams.get('sourceId') ?? undefined;
     const from = parseDate(searchParams.get('from'));
     const to = parseDate(searchParams.get('to'));
     const limit = parseNumber(searchParams.get('limit'), 20);
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
       to,
       limit,
       offset,
+      sourceId,
     });
 
     return NextResponse.json(data);
