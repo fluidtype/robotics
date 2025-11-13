@@ -6,3 +6,69 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Source {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  url      String    @unique
+  type     String
+  articles Article[]
+  rawNews  RawNews[]
+}
+
+model Company {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  website     String?
+  country     String?
+  categories  String[]
+  summary_ai  String?
+  last_seen_at DateTime @default(now())
+  articles    Article[]
+}
+
+model RawNews {
+  id          String   @id @default(cuid())
+  sourceId    String
+  url         String   @unique
+  title_raw   String
+  content_raw String
+  published_at DateTime
+  ingested_at DateTime @default(now())
+  processed   Boolean  @default(false)
+
+  source Source @relation(fields: [sourceId], references: [id])
+}
+
+model Article {
+  id              String    @id @default(cuid())
+  sourceId        String
+  companyId       String?
+  url             String    @unique
+  title           String
+  summary_ai      String
+  category        String
+  robot_tags      String[]
+  importance_score Int
+  published_at    DateTime
+  created_at      DateTime @default(now())
+
+  source  Source   @relation(fields: [sourceId], references: [id])
+  company Company? @relation(fields: [companyId], references: [id])
+}
+
+model RoboticsTokenSnapshot {
+  id          String   @id @default(cuid())
+  coingeckoId String
+  symbol      String
+  name        String
+  image       String?
+  priceUsd    Float
+  marketCapUsd Float
+  volume24hUsd Float
+  change1hPct Float
+  change24hPct Float
+  change7dPct Float
+  rank        Int
+  takenAt     DateTime @default(now())
+}
