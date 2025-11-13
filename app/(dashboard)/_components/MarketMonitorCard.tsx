@@ -18,41 +18,45 @@ export function MarketMonitorCard({ tokens }: MarketMonitorCardProps) {
     : undefined;
 
   return (
-    <Card className="space-y-5 min-h-[260px] md:min-h-[280px]">
-      <div className="space-y-2">
+    <Card className="flex h-full min-h-[280px] flex-col md:min-h-[320px]">
+      <header className="space-y-1">
         <CardTitle>Market Monitor</CardTitle>
         <CardDescription>Tracking robotics-aligned digital assets and their 24h momentum.</CardDescription>
-      </div>
+      </header>
 
-      {hasData ? (
-        <>
-          <LineChart tokens={displayTokens} />
-          <div className="grid gap-3 text-sm text-secondary sm:grid-cols-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-accent-secondary">Total Cap</p>
-              <p className="text-lg font-semibold text-primary">{formatCurrency(totalMarketCap, { notation: "compact" })}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-accent-secondary">Avg 24h change</p>
-              <p className={avgChange >= 0 ? "text-accent" : "text-rose-300"}>{formatPercent(avgChange)}</p>
-            </div>
-            {topMover && (
+      <div className="mt-4 flex flex-1 flex-col border-t border-border-subtle pt-4">
+        {hasData ? (
+          <div className="flex flex-1 flex-col gap-4">
+            <LineChart tokens={displayTokens} />
+            <div className="grid gap-3 text-sm text-secondary sm:grid-cols-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-accent-secondary">Top mover</p>
-                <p className="text-primary">
-                  {topMover.name}
-                  <span className="ml-2 text-xs text-secondary">{formatPercent(topMover.change24hPct)}</span>
+                <p className="text-xs uppercase tracking-[0.3em] text-accent-secondary">Total Cap</p>
+                <p className="text-lg font-semibold text-primary">
+                  {formatCurrency(totalMarketCap, { notation: "compact" })}
                 </p>
               </div>
-            )}
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-accent-secondary">Avg 24h change</p>
+                <p className={avgChange >= 0 ? "text-accent" : "text-rose-300"}>{formatPercent(avgChange)}</p>
+              </div>
+              {topMover && (
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-accent-secondary">Top mover</p>
+                  <p className="text-primary">
+                    {topMover.name}
+                    <span className="ml-2 text-xs text-secondary">{formatPercent(topMover.change24hPct)}</span>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="min-h-[260px] rounded-2xl border border-dashed border-border-subtle/70 bg-bg-base/30 p-6 text-sm text-secondary">
-          No token data available yet. The ETL pipeline will populate the robotics market snapshot after the next daily
-          run.
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-1 items-center rounded-2xl border border-dashed border-border-subtle/70 bg-bg-base/30 p-5 text-sm text-secondary">
+            No token data available yet. The ETL pipeline will populate the robotics market snapshot after the next daily
+            run.
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
@@ -70,7 +74,7 @@ function LineChart({ tokens }: { tokens: RoboticsTokenSnapshotUI[] }) {
   });
 
   return (
-    <div className="min-h-[200px] w-full">
+    <div className="min-h-[180px] w-full">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-40 w-full">
         <defs>
           <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">

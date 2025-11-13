@@ -45,8 +45,8 @@ export function ShellLayout({ children }: ShellLayoutProps) {
                   isActive && "bg-accent",
                 )}
               />
-              <Icon className="h-4 w-4" />
-              <span className="font-medium">{label}</span>
+              <Icon className={cn("h-[18px] w-[18px] text-accent-secondary", isActive && "text-accent")} />
+              <span className="text-sm font-medium">{label}</span>
             </span>
           </Link>
         );
@@ -85,9 +85,9 @@ export function ShellLayout({ children }: ShellLayoutProps) {
       )}
 
       <div className="flex min-h-screen flex-1 flex-col lg:ml-0">
-        <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/80 backdrop-blur">
-          <div className="flex flex-wrap items-center gap-4 px-4 py-3 lg:px-6">
-            <div className="flex flex-1 items-center gap-3">
+        <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/85 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 lg:px-6">
+            <div className="flex flex-1 items-center gap-3 lg:flex-none">
               <button
                 onClick={() => setIsOpen(true)}
                 className="inline-flex items-center justify-center rounded-xl border border-border-subtle p-2 text-secondary transition hover:text-primary lg:hidden"
@@ -95,20 +95,22 @@ export function ShellLayout({ children }: ShellLayoutProps) {
                 <span className="sr-only">Open menu</span>
                 <MenuIcon className="h-4 w-4" />
               </button>
-              <div>
-                <p className="text-[0.6rem] uppercase tracking-[0.4em] text-accent-secondary">Command Center</p>
-                <p className="text-lg font-semibold text-primary">Robotics Intelligence Hub</p>
+              <div className="space-y-1">
+                <span className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-accent-secondary">
+                  Command Center
+                </span>
+                <p className="text-xl font-semibold text-primary md:text-2xl">Robotics Intelligence Hub</p>
               </div>
             </div>
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-3 md:flex-none">
-              <div className="w-full md:w-72">
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-3 sm:flex-nowrap">
+              <div className="w-full min-w-[220px] flex-1 sm:w-72">
                 <input
                   type="search"
                   placeholder="Search robotics, companies, tokens…"
-                  className="w-full rounded-2xl border border-border-subtle bg-bg-elevated/60 px-4 py-2 text-sm text-primary placeholder:text-secondary focus:border-accent focus:outline-none"
+                  className="w-full rounded-2xl border border-border-subtle bg-bg-elevated/60 px-4 py-2.5 text-sm text-primary placeholder:text-secondary focus:border-accent focus:outline-none"
                 />
               </div>
-              <button className="inline-flex items-center justify-center rounded-2xl border border-transparent bg-accent px-4 py-2 text-sm font-semibold text-bg-base shadow-[0_0_18px_rgba(0,255,132,0.4)] transition hover:bg-accent-secondary">
+              <button className="inline-flex items-center justify-center whitespace-nowrap rounded-2xl border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-bg-base shadow-[0_0_20px_rgba(0,255,132,0.45)] transition hover:bg-accent-secondary">
                 Run Agent
               </button>
             </div>
@@ -122,7 +124,7 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 
 function OverviewIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} {...props}>
       <path d="M4 5h16M4 12h16M4 19h16" strokeLinecap="round" />
     </svg>
   );
@@ -130,7 +132,7 @@ function OverviewIcon(props: SVGProps<SVGSVGElement>) {
 
 function NewsIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} {...props}>
       <rect x="3" y="4" width="18" height="16" rx="2" />
       <path d="M7 8h5M7 12h10M7 16h6" strokeLinecap="round" />
     </svg>
@@ -139,7 +141,7 @@ function NewsIcon(props: SVGProps<SVGSVGElement>) {
 
 function CompaniesIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} {...props}>
       <path d="M4 20V8l8-4 8 4v12" />
       <path d="M12 4v16" />
     </svg>
@@ -148,7 +150,7 @@ function CompaniesIcon(props: SVGProps<SVGSVGElement>) {
 
 function CryptoIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} {...props}>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v10M9 9h6M9 15h6" strokeLinecap="round" />
     </svg>
@@ -157,7 +159,7 @@ function CryptoIcon(props: SVGProps<SVGSVGElement>) {
 
 function AgentIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} {...props}>
       <path d="M12 3v4M12 17v4M5 12h14" strokeLinecap="round" />
       <circle cx="12" cy="12" r="3" />
     </svg>
@@ -166,7 +168,7 @@ function AgentIcon(props: SVGProps<SVGSVGElement>) {
 
 function SettingsIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} {...props}>
       <path d="M12 9a3 3 0 100 6 3 3 0 000-6z" />
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
     </svg>

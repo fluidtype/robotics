@@ -17,7 +17,7 @@ const roadmapItems = [
 
 export function TodayInRoboticsCard() {
   return (
-    <Card className="flex h-full flex-col justify-between gap-6">
+    <Card className="flex h-full min-h-[360px] flex-col justify-between gap-5 md:min-h-[380px]">
       <div className="space-y-3">
         <p className="text-xs uppercase tracking-[0.35em] text-accent-secondary">Today in Robotics</p>
         <CardTitle>Command console for the robotics economy</CardTitle>
