@@ -13,7 +13,7 @@ interface CheckResult {
 
 const REQUIRED_ENV = [
   { key: 'DATABASE_URL', message: 'Needed for Prisma migrations and cron jobs.' },
-  { key: 'GROK_API_KEY', message: 'Required to call Grok/OpenAI for enrichment.' },
+  { key: 'XAI_API_KEY', message: 'Required to call Grok via xAI for enrichment.' },
   { key: 'COINGECKO_API_KEY', message: 'Required to snapshot robotics tokens.' },
   { key: 'CRON_SECRET', message: 'Protects the scheduled ETL endpoint.' },
 ];
