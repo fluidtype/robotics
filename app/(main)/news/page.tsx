@@ -13,8 +13,10 @@ interface NewsApiResponse {
   total: number;
 }
 
+type SearchParamsRecord = { [key: string]: string | string[] | undefined };
+
 interface NewsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams?: SearchParamsRecord | Promise<SearchParamsRecord>;
 }
 
 function getParamValue(value: string | string[] | undefined) {
@@ -44,13 +46,14 @@ async function fetchNews(query: URLSearchParams) {
 }
 
 export default async function NewsPage({ searchParams }: NewsPageProps) {
-  const pageParam = Number(getParamValue(searchParams.page)) || 1;
-  const q = getParamValue(searchParams.q);
-  const category = getParamValue(searchParams.category);
-  const tag = getParamValue(searchParams.tag);
-  const sourceId = getParamValue(searchParams.sourceId);
-  const from = getParamValue(searchParams.from);
-  const to = getParamValue(searchParams.to);
+  const resolvedSearchParams = (await Promise.resolve(searchParams)) ?? {};
+  const pageParam = Number(getParamValue(resolvedSearchParams.page)) || 1;
+  const q = getParamValue(resolvedSearchParams.q);
+  const category = getParamValue(resolvedSearchParams.category);
+  const tag = getParamValue(resolvedSearchParams.tag);
+  const sourceId = getParamValue(resolvedSearchParams.sourceId);
+  const from = getParamValue(resolvedSearchParams.from);
+  const to = getParamValue(resolvedSearchParams.to);
 
   const query = createSearchParams({
     q: q || undefined,
