@@ -1,4 +1,3 @@
-import { Client } from 'xai-sdk';
 import { z } from 'zod';
 import { AI_MODEL } from './ai-config';
 import { EnrichedArticleData, RawNewsData } from './types';
@@ -7,7 +6,39 @@ import { RetriableError, retry } from './retry';
 const DEFAULT_BASE_URL = process.env.XAI_API_BASE_URL ?? 'https://api.x.ai/v1';
 const MAX_XAI_RETRIES = Number(process.env.XAI_MAX_RETRIES ?? 2);
 
-let cachedClient: Client | null = null;
+type GrokRole = 'system' | 'user' | 'assistant' | 'tool';
+
+interface GrokChatMessage {
+  role: GrokRole;
+  content: string;
+}
+
+interface GrokChatCompletionRequest {
+  model: string;
+  messages: GrokChatMessage[];
+  temperature?: number;
+  response_format?: { type: 'json_object' | 'text' };
+}
+
+interface GrokChatCompletionResponse {
+  choices: Array<{
+    message?: {
+      content?: string | null;
+    } | null;
+  }>;
+}
+
+class GrokApiError extends Error {
+  status: number;
+  details?: unknown;
+
+  constructor(message: string, status: number, details?: unknown) {
+    super(message);
+    this.name = 'GrokApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
 
 function getApiKey(): string {
   const apiKey = process.env.XAI_API_KEY;
@@ -17,14 +48,42 @@ function getApiKey(): string {
   return apiKey;
 }
 
-function getClient(): Client {
-  if (!cachedClient) {
-    cachedClient = new Client({
-      apiKey: getApiKey(),
-      baseURL: DEFAULT_BASE_URL,
-    });
+function getBaseUrl(): string {
+  return DEFAULT_BASE_URL.replace(/\/$/, '');
+}
+
+async function createChatCompletion(payload: GrokChatCompletionRequest): Promise<GrokChatCompletionResponse> {
+  const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${getApiKey()}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawBody = await response.text();
+  let parsedBody: unknown = null;
+  if (rawBody) {
+    try {
+      parsedBody = JSON.parse(rawBody);
+    } catch (error) {
+      if (!response.ok) {
+        throw new GrokApiError('Grok API request failed', response.status, rawBody);
+      }
+      throw new Error(`Failed to parse Grok response: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
-  return cachedClient;
+
+  if (!response.ok) {
+    throw new GrokApiError('Grok API request failed', response.status, parsedBody);
+  }
+
+  if (!parsedBody) {
+    throw new Error('Grok API returned an empty response body.');
+  }
+
+  return parsedBody as GrokChatCompletionResponse;
 }
 
 const ENRICH_SYSTEM_PROMPT = `You are an AI editor that summarizes robotics news. Respond with strict JSON and include fields title, summary_ai, category, robot_tags, importance_score, company_name, company_website. Category must be one of product, funding, partnership, policy, or other. importance_score is an integer from 0-100.`;
@@ -89,10 +148,9 @@ function isRetryableGrokError(error: unknown): boolean {
 }
 
 async function callGrok(prompt: string): Promise<EnrichedArticleData> {
-  const client = getClient();
   const completion = await retry(
     () =>
-      client.chat.completions.create({
+      createChatCompletion({
         model: AI_MODEL,
         temperature: 0.2,
         response_format: { type: 'json_object' },
@@ -136,10 +194,9 @@ export async function enrichNews(rawNews: RawNewsData): Promise<EnrichedArticleD
 const AGENT_SYSTEM_PROMPT = `You are Robotics Hub, a helpful agent that answers user questions using the supplied context. Reference the context when available and reply concisely.`;
 
 export async function queryAgent(context: string, userQuery: string): Promise<string> {
-  const client = getClient();
   const completion = await retry(
     () =>
-      client.chat.completions.create({
+      createChatCompletion({
         model: AI_MODEL,
         temperature: 0.3,
         messages: [
