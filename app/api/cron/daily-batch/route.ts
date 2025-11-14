@@ -12,6 +12,7 @@ interface CronStats {
   newArticles: number;
   newCompanies: number;
   tokenSnapshots: number;
+  logs: string[];
 }
 
 const EMPTY_STATS: CronStats = {
@@ -19,6 +20,7 @@ const EMPTY_STATS: CronStats = {
   newArticles: 0,
   newCompanies: 0,
   tokenSnapshots: 0,
+  logs: [],
 };
 
 function extractSecret(req: NextRequest): string | null {
@@ -63,7 +65,11 @@ async function ingestSources(stats: CronStats) {
         stats.newRawNews += 1;
       }
     } catch (error) {
-      console.error(`RSS ingestion failed for source ${source.name}`, error);
+      const errorMessage = `RSS ingestion failed for source ${source.name}: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
+      console.error(errorMessage);
+      stats.logs.push(errorMessage);
     }
   }
 }
@@ -128,7 +134,11 @@ async function processRawNews(stats: CronStats) {
         data: { processed: true },
       });
     } catch (error) {
-      console.error(`AI enrichment failed for raw news ${raw.id}`, error);
+      const errorMessage = `AI enrichment failed for raw news ${raw.id}: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
+      console.error(errorMessage);
+      stats.logs.push(errorMessage);
     }
   }
 }
@@ -143,7 +153,11 @@ async function snapshotRoboticsTokens(stats: CronStats) {
     await prisma.roboticsTokenSnapshot.createMany({ data: tokens });
     stats.tokenSnapshots += tokens.length;
   } catch (error) {
-    console.error('CoinGecko snapshot failed', error);
+    const errorMessage = `CoinGecko snapshot failed: ${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    console.error(errorMessage);
+    stats.logs.push(errorMessage);
   }
 }
 
@@ -164,13 +178,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const stats: CronStats = { ...EMPTY_STATS };
+  const stats: CronStats = { ...EMPTY_STATS, logs: [] };
 
   try {
+    stats.logs.push('Starting seed sources...');
     await ensureSeedSources(prisma);
+    stats.logs.push('Seed sources ensured.');
+
+    stats.logs.push('Starting RSS ingestion...');
     await ingestSources(stats);
+    stats.logs.push(`RSS ingestion complete. New raw news: ${stats.newRawNews}`);
+
+    stats.logs.push('Starting AI enrichment...');
     await processRawNews(stats);
+    stats.logs.push(
+      `AI enrichment complete. New articles: ${stats.newArticles}, New companies: ${stats.newCompanies}`,
+    );
+
+    stats.logs.push('Starting CoinGecko snapshot...');
     await snapshotRoboticsTokens(stats);
+    stats.logs.push(`CoinGecko snapshot complete. New tokens: ${stats.tokenSnapshots}`);
 
     return NextResponse.json({
       success: true,
