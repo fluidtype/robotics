@@ -1,26 +1,25 @@
-import OpenAI from 'openai';
-import { APIConnectionError, APIConnectionTimeoutError, InternalServerError, RateLimitError } from 'openai/error';
+import { Client } from 'xai-sdk';
 import { z } from 'zod';
+import { AI_MODEL } from './ai-config';
 import { EnrichedArticleData, RawNewsData } from './types';
 import { RetriableError, retry } from './retry';
 
-const DEFAULT_MODEL = process.env.GROK_MODEL ?? 'grok-2-latest';
-const DEFAULT_BASE_URL = process.env.GROK_API_BASE_URL;
-const MAX_GROK_RETRIES = Number(process.env.GROK_MAX_RETRIES ?? 2);
+const DEFAULT_BASE_URL = process.env.XAI_API_BASE_URL ?? 'https://api.x.ai/v1';
+const MAX_XAI_RETRIES = Number(process.env.XAI_MAX_RETRIES ?? 2);
 
-let cachedClient: OpenAI | null = null;
+let cachedClient: Client | null = null;
 
 function getApiKey(): string {
-  const apiKey = process.env.GROK_API_KEY;
+  const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) {
-    throw new Error('GROK_API_KEY is not configured');
+    throw new Error('XAI_API_KEY is not configured');
   }
   return apiKey;
 }
 
-function getClient(): OpenAI {
+function getClient(): Client {
   if (!cachedClient) {
-    cachedClient = new OpenAI({
+    cachedClient = new Client({
       apiKey: getApiKey(),
       baseURL: DEFAULT_BASE_URL,
     });
@@ -72,14 +71,15 @@ function normalizeEnrichment(data: z.infer<typeof enrichmentSchema>): EnrichedAr
 }
 
 function isRetryableGrokError(error: unknown): boolean {
-  if (
-    error instanceof RetriableError ||
-    error instanceof APIConnectionError ||
-    error instanceof APIConnectionTimeoutError ||
-    error instanceof RateLimitError ||
-    error instanceof InternalServerError
-  ) {
+  if (error instanceof RetriableError) {
     return true;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const status = (error as { status?: number }).status;
+    if (typeof status === 'number' && [408, 409, 429, 500, 502, 503, 504].includes(status)) {
+      return true;
+    }
   }
 
   if (error instanceof Error) {
@@ -93,7 +93,7 @@ async function callGrok(prompt: string): Promise<EnrichedArticleData> {
   const completion = await retry(
     () =>
       client.chat.completions.create({
-        model: DEFAULT_MODEL,
+        model: AI_MODEL,
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
@@ -102,7 +102,7 @@ async function callGrok(prompt: string): Promise<EnrichedArticleData> {
         ],
       }),
     {
-      retries: MAX_GROK_RETRIES,
+      retries: MAX_XAI_RETRIES,
       baseDelayMs: 1500,
       shouldRetry: isRetryableGrokError,
     },
@@ -140,7 +140,7 @@ export async function queryAgent(context: string, userQuery: string): Promise<st
   const completion = await retry(
     () =>
       client.chat.completions.create({
-        model: DEFAULT_MODEL,
+        model: AI_MODEL,
         temperature: 0.3,
         messages: [
           { role: 'system', content: AGENT_SYSTEM_PROMPT },
@@ -151,7 +151,7 @@ export async function queryAgent(context: string, userQuery: string): Promise<st
         ],
       }),
     {
-      retries: MAX_GROK_RETRIES,
+      retries: MAX_XAI_RETRIES,
       baseDelayMs: 1000,
       shouldRetry: isRetryableGrokError,
     },

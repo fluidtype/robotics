@@ -269,8 +269,8 @@ Variabile
 Descrizione
 DATABASE_URL
 Stringa di connessione al database PostgreSQL.
-GROK_API_KEY
-Chiave API per l'accesso al modello Grok.
+XAI_API_KEY
+Chiave API per l'accesso al modello Grok su xAI.
 COINGECKO_API_KEY
 Chiave API per l'accesso ai dati CoinGecko.
 CRON_SECRET
