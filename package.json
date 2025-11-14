@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npm run lint"
+    "test": "npm run lint",
+    "etl:test": "tsx scripts/etl-test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
@@ -23,11 +24,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.0.2",
     "postcss": "^8.4.47",
     "prisma": "^6.19.0",
     "tailwindcss": "^3.4.15",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }
