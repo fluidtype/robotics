@@ -1,6 +1,9 @@
 import { CoinGeckoMarketResponse, RoboticsTokenSnapshotData } from './types';
+import { RetriableError, retry } from './retry';
 
 const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
+const COINGECKO_TIMEOUT_MS = Number(process.env.COINGECKO_TIMEOUT_MS ?? 10000);
+const COINGECKO_MAX_RETRIES = Number(process.env.COINGECKO_MAX_RETRIES ?? 2);
 
 function getApiKey(): string {
   const apiKey = process.env.COINGECKO_API_KEY;
@@ -26,15 +29,31 @@ function mapToken(response: CoinGeckoMarketResponse): RoboticsTokenSnapshotData 
   };
 }
 
-export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]> {
-  let apiKey: string;
-  try {
-    apiKey = getApiKey();
-  } catch (error) {
-    console.error(error);
-    return [];
+function shouldRetryCoinGecko(error: unknown): boolean {
+  if (error instanceof RetriableError) {
+    return true;
   }
+  if (error instanceof Error) {
+    if (error.name === 'AbortError') {
+      return true;
+    }
+    return /ENETUNREACH|ECONNRESET|ETIMEDOUT|fetch failed/i.test(error.message);
+  }
+  return false;
+}
 
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), COINGECKO_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]> {
+  const apiKey = getApiKey();
   const params = new URLSearchParams({
     category: 'robotics',
     vs_currency: 'usd',
@@ -44,19 +63,33 @@ export async function fetchRoboticsTokens(): Promise<RoboticsTokenSnapshotData[]
     price_change_percentage: '1h,24h,7d',
   });
 
-  const response = await fetch(`${COINGECKO_API_URL}/coins/markets?${params.toString()}`, {
-    headers: {
-      'accept': 'application/json',
-      'x-cg-pro-api-key': apiKey,
+  const data = await retry(
+    async () => {
+      const response = await fetchWithTimeout(`${COINGECKO_API_URL}/coins/markets?${params.toString()}`, {
+        headers: {
+          accept: 'application/json',
+          'x-cg-pro-api-key': apiKey,
+        },
+        next: { revalidate: 60 },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        const errorMessage = `CoinGecko API error: ${response.status} ${response.statusText} - ${errorBody}`;
+        if (response.status === 429 || response.status >= 500) {
+          throw new RetriableError(errorMessage);
+        }
+        throw new Error(errorMessage);
+      }
+
+      return (await response.json()) as CoinGeckoMarketResponse[];
     },
-    next: { revalidate: 60 },
-  });
+    {
+      retries: COINGECKO_MAX_RETRIES,
+      baseDelayMs: 1500,
+      shouldRetry: shouldRetryCoinGecko,
+    },
+  );
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`CoinGecko API error: ${response.status} ${response.statusText} - ${errorBody}`);
-  }
-
-  const data = (await response.json()) as CoinGeckoMarketResponse[];
   return data.map(mapToken);
 }
